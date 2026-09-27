@@ -1,0 +1,596 @@
+<?xml version="1.0" ?>
+<!--
+  disaster_zone.sdf — Grand Challenge 1 Operational Area
+
+  A 1000m × 1000m operational area with:
+    - Large ground plane
+    - Operational center marker (75m west of the area)
+    - Area boundary markers
+    - POIs are spawned dynamically by the GCS node
+
+  Grid: 50 cols × 50 rows, cell size = 20m × 20m
+-->
+<sdf version="1.9">
+  <world name="disaster_zone">
+
+    <!-- ── Physics ── -->
+    <physics type="ode">
+      <max_step_size>0.004</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>250</real_time_update_rate>
+    </physics>
+
+    <!-- ── Plugins ── -->
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <plugin filename="gz-sim-magnetometer-system" name="gz::sim::systems::Magnetometer"/>
+    <plugin filename="gz-sim-air-pressure-system" name="gz::sim::systems::AirPressure"/>
+    <plugin filename="gz-sim-navsat-system" name="gz::sim::systems::NavSat"/>
+
+    <!-- ── Spherical coordinates (for GPS simulation) ── -->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>47.397742</latitude_deg>
+      <longitude_deg>8.545594</longitude_deg>
+      <elevation>488.0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
+    <!-- ── Lighting ── -->
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 500 0 0 0</pose>
+      <diffuse>0.9 0.85 0.8 1</diffuse>
+      <specular>0.3 0.3 0.3 1</specular>
+      <attenuation>
+        <range>2000</range>
+        <constant>0.9</constant>
+        <linear>0.001</linear>
+        <quadratic>0.0001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.3 -0.9</direction>
+    </light>
+
+    <light type="directional" name="ambient_fill">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 300 0 0 0</pose>
+      <diffuse>0.4 0.4 0.5 1</diffuse>
+      <specular>0.0 0.0 0.0 1</specular>
+      <direction>0.2 -0.5 -0.7</direction>
+    </light>
+
+    <!-- ── Ground Plane (1100m × 1100m — slightly larger than ops area) ── -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>1200 1200</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>1200 1200</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.35 0.30 0.25 1</ambient>
+            <diffuse>0.45 0.40 0.35 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ════════════════════════════════════════════════════════════════════════
+         OPERATIONAL AREA BOUNDARY MARKERS (1000m × 1000m, centered at origin)
+         Thin red lines marking the operational area edges
+         ════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- North boundary (y = +500) -->
+    <model name="boundary_north">
+      <static>true</static>
+      <pose>0 500 0.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>1000 1.0 1.0</size></box></geometry>
+          <material>
+            <ambient>0.8 0.1 0.1 1</ambient>
+            <diffuse>0.9 0.2 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- South boundary (y = -500) -->
+    <model name="boundary_south">
+      <static>true</static>
+      <pose>0 -500 0.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>1000 1.0 1.0</size></box></geometry>
+          <material>
+            <ambient>0.8 0.1 0.1 1</ambient>
+            <diffuse>0.9 0.2 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- East boundary (x = +500) -->
+    <model name="boundary_east">
+      <static>true</static>
+      <pose>500 0 0.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>1.0 1000 1.0</size></box></geometry>
+          <material>
+            <ambient>0.8 0.1 0.1 1</ambient>
+            <diffuse>0.9 0.2 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- West boundary (x = -500) -->
+    <model name="boundary_west">
+      <static>true</static>
+      <pose>-500 0 0.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>1.0 1000 1.0</size></box></geometry>
+          <material>
+            <ambient>0.8 0.1 0.1 1</ambient>
+            <diffuse>0.9 0.2 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ════════════════════════════════════════════════════════════════════════
+         GCS / OPERATIONAL CENTER MARKER
+         Located 75m west of the operational area (x = -575)
+         Large blue cylinder so it's visible from the air
+         ════════════════════════════════════════════════════════════════════════ -->
+
+    <model name="gcs_marker">
+      <static>true</static>
+      <pose>-575 0 1.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>5.0</radius><length>3.0</length></cylinder></geometry>
+          <material>
+            <ambient>0.1 0.3 0.8 1</ambient>
+            <diffuse>0.2 0.4 0.9 1</diffuse>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry><cylinder><radius>5.0</radius><length>3.0</length></cylinder></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- GCS label post (tall thin pillar for visibility) -->
+    <model name="gcs_beacon">
+      <static>true</static>
+      <pose>-575 0 15 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><cylinder><radius>0.5</radius><length>30.0</length></cylinder></geometry>
+          <material>
+            <ambient>0.1 0.3 0.8 1</ambient>
+            <diffuse>0.2 0.4 0.9 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ════════════════════════════════════════════════════════════════════════
+         SCATTERED STRUCTURES (buildings / rubble for visual realism)
+         ════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Building cluster NE -->
+    <model name="building_ne_1">
+      <static>true</static>
+      <pose>300 300 5 0 0 0.3</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>40 25 10</size></box></geometry>
+          <material><ambient>0.5 0.5 0.5 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>40 25 10</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- Building cluster SW -->
+    <model name="building_sw_1">
+      <static>true</static>
+      <pose>-250 -280 4 0 0 -0.2</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>35 30 8</size></box></geometry>
+          <material><ambient>0.48 0.46 0.43 1</ambient><diffuse>0.58 0.56 0.53 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>35 30 8</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- Building center -->
+    <model name="building_center">
+      <static>true</static>
+      <pose>50 -50 6 0 0 0.1</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>50 35 12</size></box></geometry>
+          <material><ambient>0.52 0.50 0.46 1</ambient><diffuse>0.62 0.60 0.56 1</diffuse></material>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>50 35 12</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- Building SE -->
+    <model name="building_se_1">
+      <static>true</static>
+      <pose>350 -200 3.5 0 0 0.5</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>30 20 7</size></box></geometry>
+          <material><ambient>0.45 0.43 0.40 1</ambient><diffuse>0.55 0.53 0.50 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Rubble piles scattered across the 1000m area -->
+    <model name="rubble_1">
+      <static>true</static>
+      <pose>-150 200 2.0 0.1 0.2 0.5</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>15 8 4</size></box></geometry>
+          <material><ambient>0.4 0.38 0.35 1</ambient><diffuse>0.5 0.48 0.45 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rubble_2">
+      <static>true</static>
+      <pose>200 -350 1.5 -0.1 0.15 1.2</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>20 10 3</size></box></geometry>
+          <material><ambient>0.45 0.42 0.38 1</ambient><diffuse>0.55 0.52 0.48 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rubble_3">
+      <static>true</static>
+      <pose>-300 -100 2.5 0.2 -0.1 0.8</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>12 18 5</size></box></geometry>
+          <material><ambient>0.42 0.40 0.36 1</ambient><diffuse>0.52 0.50 0.46 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rubble_4">
+      <static>true</static>
+      <pose>400 100 1.0 0.05 0.1 2.1</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>10 25 2</size></box></geometry>
+          <material><ambient>0.38 0.36 0.33 1</ambient><diffuse>0.48 0.46 0.43 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ════════════════════════════════════════════════════════════════════════
+         POI SURVIVORS (10 targets for drones to find)
+         Each survivor is an orange figure with a tall green beacon.
+         Positions match scenario_loader.py seed(123) placement.
+         ════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- POI 0: grid=(7,21) world=(-350, -70) -->
+    <model name="poi_0">
+      <static>true</static>
+      <pose>-350 -70 0 0 0 0</pose>
+      <link name="body">
+        <!-- Body (orange cylinder) -->
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <!-- Head -->
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <!-- Beacon pole (tall, visible from 30m altitude) -->
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <!-- Beacon top ball -->
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- POI 1: grid=(9,30) world=(-310, 110) -->
+    <model name="poi_1">
+      <static>true</static>
+      <pose>-310 110 0 0 0 0.5</pose>
+      <link name="body">
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- POI 2: grid=(21,10) world=(-70, -290) -->
+    <model name="poi_2">
+      <static>true</static>
+      <pose>-70 -290 0 0 0 1.2</pose>
+      <link name="body">
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- POI 3: grid=(6,28) world=(-370, 70) -->
+    <model name="poi_3">
+      <static>true</static>
+      <pose>-370 70 0 0 0 2.0</pose>
+      <link name="body">
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- POI 4: grid=(38,39) world=(270, 290) -->
+    <model name="poi_4">
+      <static>true</static>
+      <pose>270 290 0 0 0 0.8</pose>
+      <link name="body">
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- POI 5: grid=(25,25) world=(10, 10) — near center -->
+    <model name="poi_5">
+      <static>true</static>
+      <pose>10 10 0 0 0 1.5</pose>
+      <link name="body">
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- POI 6: grid=(7,14) world=(-350, -210) -->
+    <model name="poi_6">
+      <static>true</static>
+      <pose>-350 -210 0 0 0 3.0</pose>
+      <link name="body">
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- POI 7: grid=(12,25) world=(-250, 10) -->
+    <model name="poi_7">
+      <static>true</static>
+      <pose>-250 10 0 0 0 0.3</pose>
+      <link name="body">
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- POI 8: grid=(39,25) world=(290, 10) -->
+    <model name="poi_8">
+      <static>true</static>
+      <pose>290 10 0 0 0 4.0</pose>
+      <link name="body">
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- POI 9: grid=(19,14) world=(-110, -210) -->
+    <model name="poi_9">
+      <static>true</static>
+      <pose>-110 -210 0 0 0 5.5</pose>
+      <link name="body">
+        <visual name="torso">
+          <pose>0 0 0.6 0 0 0</pose>
+          <geometry><cylinder><radius>0.3</radius><length>1.2</length></cylinder></geometry>
+          <material><ambient>0.9 0.4 0.0 1</ambient><diffuse>1.0 0.5 0.1 1</diffuse></material>
+        </visual>
+        <visual name="head">
+          <pose>0 0 1.4 0 0 0</pose>
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material><ambient>0.85 0.65 0.45 1</ambient><diffuse>0.9 0.7 0.5 1</diffuse></material>
+        </visual>
+        <visual name="beacon">
+          <pose>0 0 5 0 0 0</pose>
+          <geometry><cylinder><radius>0.15</radius><length>10.0</length></cylinder></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+        <visual name="beacon_top">
+          <pose>0 0 10.2 0 0 0</pose>
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+          <material><ambient>0.1 0.9 0.1 1</ambient><diffuse>0.2 1.0 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
+

@@ -1,0 +1,65 @@
+# ────────────────────────────────────────────────────────────────────────────────
+# Protoplasm Swarm Parameters — Grand Challenge 1 Configuration
+# Operational area: 1000m × 1000m, GCS 75m outside the west edge
+# ────────────────────────────────────────────────────────────────────────────────
+swarm:
+  ros__parameters:
+    # ── Drone Count ──
+    num_drones: 5
+    scenario: "grand-challenge"
+
+    # ── Flight Parameters ──
+    altitude_m: 30.0              # AGL hover altitude (max allowed = 100m)
+    world_size_x: 1000.0          # Operational area X dimension (meters)
+    world_size_y: 1000.0          # Operational area Y dimension (meters)
+    grid_cols: 50                 # Pheromone grid columns (each cell = 20m)
+    grid_rows: 50                 # Pheromone grid rows (each cell = 20m)
+    cell_size_m: 20.0             # 1000m / 50 cols = 20m per cell
+
+    # ── Communication ──
+    comm_range_m: 100.0           # Max inter-drone message range (challenge spec)
+    radio_range_m: 100.0          # Alias for comm range
+
+    # ── GCS Position ──
+    gcs_x: -575.0                 # 75m west of the area edge (-500 - 75)
+    gcs_y: 0.0
+
+    # ── Pheromone Field ──
+    pheromone_decay_rate: 0.020   # Slower decay for larger area
+    pheromone_reinforce_bonus: 0.05
+    pheromone_reinforce_window: 15
+    pheromone_max_strength: 0.85
+    pheromone_min_strength: 0.0
+
+    # ── Regime Thresholds ──
+    spread_max_viscosity: 0.30
+    solidify_min_viscosity: 0.70
+
+    # ── Regime Movement Parameters ──
+    spread_speed: 5.0             # m/s — challenge max speed
+    converge_speed: 3.5           # m/s — slowing to verify
+    solidify_speed: 1.0           # m/s — slow hover over target
+
+    spread_gradient_pull: 0.05
+    spread_random_weight: 0.80
+    converge_gradient_pull: 0.80
+    converge_random_weight: 0.20
+    solidify_gradient_pull: 0.95
+    solidify_random_weight: 0.05
+
+    # ── Sensor Noise ──
+    sensor_noise_sigma: 0.08
+
+    # ── Simulation Tick Rate ──
+    tick_rate_hz: 20.0
+
+    # ── Mission ──
+    mission_time_s: 2700          # 45 minutes
+    battery_capacity_s: 1200      # 20 minutes per drone
+    min_separation_m: 20.0        # Challenge minimum inter-UAV distance
+    poi_count: 10                 # Number of POIs
+    poi_report_deadline_s: 10.0   # Max time from detection to GCS report
+
+    # ── Extraction ──
+    solidify_extract_ticks: 30
+    sentinel_watchdog_ticks: 600
